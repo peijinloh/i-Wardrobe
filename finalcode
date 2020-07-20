@@ -1,0 +1,98 @@
+#include <Adafruit_Sensor.h>// include the library 
+#include <DHT.h>// include the library 
+#include <Wire.h>  // include the library 
+#include <LiquidCrystal_I2C.h>// include the library 
+int fanPin = 12; // declare the pin 12 to the fan
+#define DHTPIN 8 // declare the pin 8 to the DHT sensor
+#define DHTTYPE DHT11 //definre the DHT11 sensor
+LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+
+DHT dht(DHTPIN, DHTTYPE);
+void setup() {
+  Serial.begin(9600);
+  Serial.println("DHT11 test!");
+  pinMode(fanPin, OUTPUT);
+  dht.begin();
+  delay(2000);
+  Serial.println("Begin reading");
+
+  lcd.init();                      // initialize the lcd 
+  lcd.init();
+  // Print a message to the LCD.
+  lcd.backlight();
+  lcd.setCursor(1,0);
+  lcd.print("Temperature:");
+  lcd.setCursor(1,1);
+  lcd.print("Humidity:");
+}
+
+void loop() {
+
+
+  float h = dht.readHumidity(); // declare the h as the reading of humidity
+  float t = dht.readTemperature(); // declare the t as the reading of temperature
+  float f = dht.readTemperature(true); 
+
+
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+
+  Serial.print("Humidity: ");
+  Serial.print(h);
+  Serial.print(" %\t");
+  Serial.print("Temperature: ");
+  Serial.print(t);
+  Serial.println(" *C ");
+
+  lcd.setCursor(1,0);
+  lcd.print("Humidity: ");
+  lcd.print(h);
+  lcd.setCursor(1,1);
+  lcd.print("Temperature: ");
+  lcd.print(t);
+  
+
+
+
+  if (t<=30 && h<=70) //low temp or low humid
+  {
+    Serial.println("GOOD!");
+    digitalWrite(fanPin, LOW); // fan not activated
+    
+   
+    
+  }
+
+  else if (t>30 && h>70) //high temp & humid
+  {
+    Serial.println("Too humid! and Too hot");
+    
+    digitalWrite(fanPin, HIGH); //fan ON
+    delay (5000);//fan will be on for 5sec
+    digitalWrite(fanPin,LOW);  //fan OFF
+    
+  }
+  else if (t>30 ) //high temp
+  {
+    Serial.println("Too hot!");
+  
+    digitalWrite(fanPin, HIGH); //fan ON
+    delay (5000);//fan will be on for 5sec
+    digitalWrite(fanPin,LOW);  //fan OFF
+  }
+
+  else  //high humid
+  {
+    Serial.println(" Too humid!");
+    
+    digitalWrite(fanPin, HIGH); //fan ON
+    delay (5000);//fan will be on for 5sec
+    digitalWrite(fanPin,LOW); //fan OFF
+    
+  }
+
+  delay (60000); //delay for one minute - update each minutes
+
+}
